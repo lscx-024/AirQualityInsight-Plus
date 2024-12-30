@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Air Quality Report</title>
+  <!-- 引入 Vue.js -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <!-- 引入 ECharts 图表库 -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+  <!-- 引入 Leaflet 地图库 CSS 和 JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <style>
+    /* 设置地图的高度 */
+    #map { height: 400px; }
+    /* 设置图表的宽度和高度 */
+    #chart { width: 600px; height: 400px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <!-- Vue 实例挂载的目标元素 -->
+  <div id="app">
+    <h1>Air Quality Report</h1>
+    <!-- 地图容器 -->
+    <div id="map"></div>
+    <!-- 图表容器 -->
+    <div id="chart"></div>
+  </div>
+
+  <script>
+    // 确保 DOM 完全加载后再初始化 Vue 实例
+    document.addEventListener('DOMContentLoaded', () => {
+      new Vue({
+        el: '#app',
+        data: {
+          map: null, // 存储地图实例
+          chart: null, // 存储图表实例
+          airQualityData: [] // 存储空气质量数据
+        },
+        mounted() {
+          // 初始化地图
+          this.initMap();
+          // 获取并更新空气质量数据
+          this.fetchAirQualityData();
+          // 初始化图表
+          this.initChart();
+          // 请求通知权限
+          this.requestNotificationPermission();
+        },
+        methods: {
+          initMap() {
+            // 创建地图实例，并设置初始视图为北京市（经纬度：39.9042, 116.4074），缩放级别为13
+            this.map = L.map('map').setView([39.9042, 116.4074], 13);
+            // 添加 OpenStreetMap 标题层
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap contributors'
+            }).addTo(this.map);
+          },
+          fetchAirQualityData() {
+            // 模拟从 API 获取空气质量数据，并每5秒更新一次
+            setInterval(() => {
+              this.airQualityData = [
+                { city: 'Beijing', aqi: Math.floor(Math.random() * 500) },
+                { city: 'Shanghai', aqi: Math.floor(Math.random() * 500) },
+                { city: 'Guangzhou', aqi: Math.floor(Math.random() * 500) },
+                { city: 'Shenzhen', aqi: Math.floor(Math.random() * 500) }
+              ];
+              // 更新图表
+              this.updateChart();
+            }, 5000);
+          },
+          initChart() {
+            // 初始化图表实例
+            this.chart = echarts.init(document.getElementById('chart'));
+            // 设置图表选项
+            const option = {
+              title: {
+                text: 'Real-time Air Quality Index' // 图表标题
+              },
+              tooltip: {}, // 提示框组件
+              legend: {
+                data: ['AQI'] // 图例数据
+              },
+              xAxis: {
+                data: ["Beijing", "Shanghai", "Guangzhou", "Shenzhen"] // X 轴数据
+              },
+              yAxis: {}, // Y 轴配置
+              series: [{
+                name: 'AQI', // 系列名称
+                type: 'bar', // 图表类型为柱状图
+                data: [0, 0, 0, 0] // 初始数据
+              }]
+            };
+            // 设置图表选项
+            this.chart.setOption(option);
+          },
+          updateChart() {
+            // 从空气质量数据中提取城市名称
+            const cities = this.airQualityData.map(item => item.city);
+            // 从空气质量数据中提取 AQI 值
+            const aqis = this.airQualityData.map(item => item.aqi);
+            // 更新图表数据
+            this.chart.setOption({
+              xAxis: {
+                data: cities // 更新 X 轴数据
+              },
+              series: [{
+                data: aqis // 更新系列数据
+              }]
+            });
+            // 发送通知
+            this.sendNotification(cities[0], aqis[0]);
+          },
+          requestNotificationPermission() {
+            // 请求通知权限
+            if ("Notification" in window) {
+              Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                  console.log("Notification permission granted."); // 权限授予日志
+                } else {
+                  console.log("Notification permission denied."); // 权限拒绝日志
+                }
+              });
+            }
+          },
+          sendNotification(city, aqi) {
+            // 发送桌面通知
+            if ("Notification" in window && Notification.permission === "granted") {
+              new Notification(`Air Quality Alert`, {
+                body: `${city} AQI: ${aqi}`, // 通知内容
+                icon: 'https://img.alicdn.com/tfs/TB1YHEpwUT1gK0jSZFhXXaAtVXa-64-64.png' // 通知图标
+              });
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
