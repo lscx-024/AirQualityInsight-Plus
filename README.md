@@ -21,5 +21,5 @@ This project provides a comprehensive system for real-time air quality monitorin
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/my-air-quality-project.git
-   cd my-air-quality-project
+   git clone https://github.com/lscx-024/AirQualityInsight-Plus.git
+   cd AirQualityInsight-Plus
